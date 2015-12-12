@@ -22,6 +22,8 @@ def normalizeData(myData):
     print("New Average: ", np.mean(myData))
     print("New STD: ", np.std(myData))
 
+    return myData
+
 
 
 def getPatches():
@@ -35,6 +37,32 @@ def getPatches():
     print(images.shape)
     return images
 
+def sigmoid(x, derivative=False):
+    if derivative:
+        return x * (1-x)
+    else:
+        return 1/(1+np.exp(-1*x))
+
+def forward(x, L1,L2):
+    return np.dot(x,W)
+
+def cost(input,hidden,):
+    cost = 0
+    grad = 0
+
+
+
+
+    return cost,grad
+
+
 
 train = normalizeData(getPatches())
+W = np.random.random()
+for row in train:
+   train(row)
+
+
+
+
 
