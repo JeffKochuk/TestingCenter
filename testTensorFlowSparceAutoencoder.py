@@ -31,6 +31,17 @@ weights = {
     'out': tf.Variable(tf.random_normal([n_hidden, n_output]))
 }
 
+biases = {
+    'hidden': tf.Variable(tf.random_normal([n_input, n_hidden])),
+    'out': tf.Variable(tf.random_normal([n_hidden, n_output]))
+}
+
+#Construct my model
+pred = autoencoder(x, weights, biases)
+
+cost = tf.nn.l2_loss(pred-x) + #Regularization + #sparcity
+
+
 
 
 
