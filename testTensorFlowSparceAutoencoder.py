@@ -9,11 +9,14 @@ __author__ = 'JEFFERYK'
 n_input = 64
 n_hidden = 25
 n_output = n_input
+n_lambda = 0.0001
+n_sparcity = 0.01
+n_beta = 3
 
 learning_rate = .01
 
 x = tf.placeholder("float", [None, n_input])
-y = tf.placeholder("float", [None, n_input])
+hidden = tf.placeholder("float", [None, n_hidden])
 
 def autoencoder(X, weights, biases):
     hiddenlayer = tf.sigmoid(
@@ -24,7 +27,8 @@ def autoencoder(X, weights, biases):
             biases['hidden']
         )
     )
-    return tf.matmul(hiddenlayer, weights['out']) + biases['out']
+    out = tf.matmul(hiddenlayer, weights['out']) + biases['out']
+    return {'out': out, 'hidden': hiddenlayer}
 
 weights = {
     'hidden': tf.Variable(tf.random_normal([n_input, n_hidden])),
@@ -39,7 +43,11 @@ biases = {
 #Construct my model
 pred = autoencoder(x, weights, biases)
 
-cost = tf.nn.l2_loss(pred-x) + #Regularization + #sparcity
+rho_hat = tf.reduce_mean(pred['hidden'])
+sparce_cost = tf.sum(rho)
+
+#Construct cost
+cost = tf.add(tf.nn.l2_loss(pred-x) , tf.nn.l2_loss(weights.values())) # + sparcity
 
 
 
@@ -48,8 +56,6 @@ cost = tf.nn.l2_loss(pred-x) + #Regularization + #sparcity
 
 trainingX = gid.normalizeData(gid.getPatches())
 W = np.random.random()
-for row in train:
-   train(row)
 
 
 
