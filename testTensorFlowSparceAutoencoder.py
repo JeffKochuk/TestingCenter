@@ -10,9 +10,8 @@ n_input = 64
 n_hidden = 25
 n_output = n_input
 n_lambda = 0.0001
-n_sparcity = 0.01
+n_rho = 0.01
 n_beta = 3
-
 learning_rate = .01
 
 x = tf.placeholder("float", [None, n_input])
@@ -43,13 +42,12 @@ biases = {
 #Construct my model
 pred = autoencoder(x, weights, biases)
 
-rho_hat = tf.reduce_mean(pred['hidden'])
-sparce_cost = tf.sum(rho)
-
+rho_hat = tf.reduce_mean(pred['hidden'])#fix this
+sparce_cost = tf.reduce_sum( tf.add(tf.mul(n_rho , tf.log(tf.div(n_rho,x))) , tf.mul(tf.sub(1 , n_rho), tf.log(tf.div(tf.sub(1,n_rho),tf.sub(1,x))))))
 #Construct cost
-cost = tf.add(tf.nn.l2_loss(pred-x) , tf.nn.l2_loss(weights.values())) # + sparcity
+cost = tf.add(tf.add(tf.reduce_mean(tf.nn.l2_loss(pred-x)) , tf.mul(n_lambda,tf.nn.l2_loss(weights.values()))) , sparce_cost)
 
-
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
 
 
