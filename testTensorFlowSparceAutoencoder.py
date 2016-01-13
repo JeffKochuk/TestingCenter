@@ -6,6 +6,8 @@ import tensorflow as tf
 __author__ = 'JEFFERYK'
 
 #Network Parameters
+n_epoch_size = 1000
+n_num_epochs = 10
 n_input = 64
 n_hidden = 25
 n_output = n_input
@@ -52,8 +54,27 @@ optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
 
 
-trainingX = gid.normalizeData(gid.getPatches())
-W = np.random.random()
+# Initializing the variables
+init = tf.initialize_all_variables()
+
+# Launch the graph
+with tf.Session() as sess:
+    sess.run(init)
+    saver = tf.train.Saver({'weights':weights, 'biases':biases} )
+
+    # Training cycle
+    for epoch in range(n_num_epochs):
+        avg_cost = 0.
+        batch_xs=gid.getPatches(n_epoch_size)
+        # Fit training using batch data
+        sess.run(optimizer, feed_dict={x: batch_xs})
+        # Display logs per epoch step
+        print("Epoch:", epoch,"    " "cost=", sess.run(cost, feed_dict={x: batch_xs}))
+
+    print("Optimization Finished!")
+    saver.save(sess, 'my-SAE')
+
+
 
 
 
