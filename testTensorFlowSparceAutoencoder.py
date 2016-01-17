@@ -1,19 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as mp
 import scipy.io
+import visualizer as vis
 import getImageData as gid
 import tensorflow as tf
 __author__ = 'JEFFERYK'
 
 #Network Parameters
-n_epoch_size = 10000
-n_num_epochs = 1
+n_epoch_size = 100000
+n_num_epochs = 2
 n_input = 64
 n_hidden = 25
 n_output = n_input
 n_lambda = tf.constant(0.0001)
 n_rho = tf.constant(0.01)
-n_beta = tf.constant(3)
+n_beta = tf.constant(3.)
 learning_rate = tf.constant(.01)
 ONE = tf.constant(1.0)
 
@@ -47,19 +48,29 @@ pred = autoencoder(x, weights, biases)
 
 rho_hat = tf.reduce_mean(pred['hidden'],1)
 
-#Construct cost
-cost_sparce = tf.reduce_sum(tf.add(tf.mul(n_rho, tf.log(tf.div(n_rho, x))), tf.mul(tf.sub(ONE, n_rho), tf.log(tf.div(tf.sub(ONE, n_rho), tf.sub(ONE, x))))))
-cost_J = tf.reduce_mean(tf.nn.l2_loss(pred['out']-x))
-cost_reg = tf.mul(n_lambda,tf.add(tf.nn.l2_loss(weights['hidden']),tf.nn.l2_loss(weights['out'])))
-cost = tf.add(tf.add(cost_J , cost_reg ), cost_sparce)
+def KL_Div(rho, rho_hat):
+    invrho = tf.sub(tf.constant(1.), rho)
+    invrhohat = tf.sub(tf.constant(1.), rho_hat)
+    logrho = logfunc(rho,rho_hat) + logfunc(invrho, invrhohat)
+    return logrho
 
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+def logfunc(x, x2):
+    return tf.mul( x, tf.log(tf.div(x,x2)))
+
+#Construct cost
+cost_sparse = tf.mul(n_beta, tf.reduce_sum(KL_Div(n_rho, rho_hat)))
+cost_J = tf.reduce_mean(tf.nn.l2_loss(tf.sub(pred['out'], x)))
+cost_reg = tf.mul(n_lambda,tf.add(tf.nn.l2_loss(weights['hidden']),tf.nn.l2_loss(weights['out'])))
+cost = tf.add(tf.add(cost_J , cost_reg ), cost_sparse)
+
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
 
 
 
 
 # Initializing the variables
 init = tf.initialize_all_variables()
+
 
 # Launch the graph
 with tf.Session() as sess:
@@ -72,11 +83,16 @@ with tf.Session() as sess:
         batch_xs=gid.getPatches(n_epoch_size)
         # Fit training using batch data
         sess.run(optimizer, feed_dict={x: batch_xs})
-        # Display logs per epoch step
-        print("Epoch:", epoch,"    " "cost=", sess.run(cost, feed_dict={x: batch_xs}))
 
     print("Optimization Finished!")
+
     saver.save(sess, 'my-SAE')
+
+    outWeights = sess.run(weights['hidden'])
+    outWeights = gid.normalizeData(outWeights)
+    vis.display_network(outWeights)
+    vis.display_network(outWeights.T, filename="weightsT.png")
+
 
 
 
