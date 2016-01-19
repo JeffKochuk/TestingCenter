@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as mp
-import scipy.io
 import visualizer as vis
 import getImageData as gid
 import tensorflow as tf
