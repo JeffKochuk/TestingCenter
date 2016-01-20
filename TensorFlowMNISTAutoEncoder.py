@@ -4,21 +4,20 @@ import getImageData as gid
 import tensorflow as tf
 __author__ = 'JEFFERYK'
 
-# Network Parameters
+#Network Parameters
 n_epoch_size = 10000
 n_num_epochs = 5
-n_input = 64
-n_hidden = 25
+n_input = 28*28
+n_hidden = 14*14
 n_output = n_input
-n_lambda = tf.constant(.0001)
-n_rho = tf.constant(0.01)
+n_lambda = tf.constant(.003)
+n_rho = tf.constant(0.1)
 n_beta = tf.constant(3.)
 n_learning_rate = tf.constant(.01)
 ONE = tf.constant(1.0)
 
 x = tf.placeholder("float", [None, n_input])
 hidden = tf.placeholder("float", [None, n_hidden])
-
 
 def autoencoder(X, weights, biases):
     hiddenlayer = tf.sigmoid(tf.matmul(X, weights['hidden']) + biases['hidden'])
@@ -54,7 +53,7 @@ cost_J = tf.reduce_mean(tf.nn.l2_loss(pred['out'] - x))
 cost_reg = n_lambda * (tf.nn.l2_loss(weights['hidden']) + tf.nn.l2_loss(weights['out']))
 cost = cost_J + cost_reg + cost_sparse
 
-optimizer = tf.train.Optimizer(learning_rate=n_learning_rate).minimize(cost)
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=n_learning_rate).minimize(cost)
 
 
 # Initializing the variables
@@ -64,9 +63,6 @@ init = tf.initialize_all_variables()
 with tf.Session() as sess:
     sess.run(init)
     saver = tf.train.Saver()
-
-    outWeights = sess.run(weights['hidden'])
-    vis.display_network(outWeights, filename='pretrainweights')
 
     # Training cycle
     for epoch in range(n_num_epochs):
@@ -80,12 +76,3 @@ with tf.Session() as sess:
 
     outWeights = sess.run(weights['hidden'])
     vis.display_network(outWeights)
-    vis.display_network(outWeights.T, filename="weightsT")
-
-
-
-
-
-
-
-
